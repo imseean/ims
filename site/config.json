@@ -1,0 +1,14 @@
+{
+  "name": "Ims",
+  "author": "<author>",
+  "title": "<title>",
+  "subtitle": "<subtitle>",
+  "baseurl": "<baseurl>",
+  "theme": "default",
+  "layout_directory": "layout",
+  "content_directory": "content",
+  "data_directory": "data",
+  "build_directory": "build",
+  "publish_directory": "publish",
+  "assets_directory": "assets"
+}
