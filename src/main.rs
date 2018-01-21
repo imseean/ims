@@ -1,12 +1,14 @@
 extern crate chrono;
 #[macro_use]
 extern crate clap;
+#[macro_use]
+extern crate prettytable;
+extern crate regex;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
 extern crate uuid;
-
 mod site;
 fn main() {
     // let matches = clap_app!(myapp =>
@@ -30,5 +32,6 @@ fn main() {
     //     )
     // ).get_matches();load
     let site = site::Site::load("./site");
-    site.new_content("hello.md");
+    site.list_content();
+    // site.new_content("hello.md");
 }

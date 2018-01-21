@@ -1,13 +1,12 @@
 mod content;
 mod infrastructure;
-
-use self::infrastructure::EasyGet;
 use self::content::Content;
 use serde_json;
-use serde_json::Value;
 use std::path::Path;
 use std::fs::{DirBuilder, File};
 use std::io::{Read, Write};
+use prettytable::{format, Table};
+use chrono::{DateTime, Local, TimeZone};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Site {
@@ -55,31 +54,56 @@ impl Site {
             let mut buffer = String::new();
             config_file.read_to_string(&mut buffer).unwrap();
             let value = serde_json::to_value(buffer).unwrap();
-            site.name = value.get_string_data("name").unwrap_or(site.name);
-            site.author = value.get_string_data("author").unwrap_or(site.author);
-            site.title = value.get_string_data("title").unwrap_or(site.title);
-            site.subtitle = value.get_string_data("subtitle").unwrap_or(site.subtitle);
-            site.baseurl = value.get_string_data("baseurl").unwrap_or(site.baseurl);
-            site.theme = value.get_string_data("theme").unwrap_or(site.theme);
-            site.layout_directory = value
-                .get_string_data("layout_directory")
+            site.name = value["name"]
+                .as_str()
+                .map(|x| x.to_string())
+                .unwrap_or(site.name);
+            site.author = value["author"]
+                .as_str()
+                .map(|x| x.to_string())
+                .unwrap_or(site.author);
+            site.title = value["title"]
+                .as_str()
+                .map(|x| x.to_string())
+                .unwrap_or(site.title);
+            site.subtitle = value["subtitle"]
+                .as_str()
+                .map(|x| x.to_string())
+                .unwrap_or(site.subtitle);
+            site.baseurl = value["baseurl"]
+                .as_str()
+                .map(|x| x.to_string())
+                .unwrap_or(site.baseurl);
+            site.theme = value["theme"]
+                .as_str()
+                .map(|x| x.to_string())
+                .unwrap_or(site.theme);
+            site.layout_directory = value["layout_directory"]
+                .as_str()
+                .map(|x| x.to_string())
                 .unwrap_or(site.layout_directory);
-            site.content_directory = value
-                .get_string_data("content_directory")
+            site.content_directory = value["content_directory"]
+                .as_str()
+                .map(|x| x.to_string())
                 .unwrap_or(site.content_directory);
-            site.data_directory = value
-                .get_string_data("data_directory")
+            site.data_directory = value["data_directory"]
+                .as_str()
+                .map(|x| x.to_string())
                 .unwrap_or(site.data_directory);
-            site.build_directory = value
-                .get_string_data("build_directory")
+            site.build_directory = value["build_directory"]
+                .as_str()
+                .map(|x| x.to_string())
                 .unwrap_or(site.build_directory);
-            site.publish_directory = value
-                .get_string_data("publish_directory")
+            site.publish_directory = value["publish_directory"]
+                .as_str()
+                .map(|x| x.to_string())
                 .unwrap_or(site.publish_directory);
-            site.assets_directory = value
-                .get_string_data("assets_directory")
+            site.assets_directory = value["assets_directory"]
+                .as_str()
+                .map(|x| x.to_string())
                 .unwrap_or(site.assets_directory);
         }
+        Content::load(&site, "./hello.md");
         return site;
     }
 
@@ -117,10 +141,61 @@ impl Site {
     }
 
     pub fn new_content(&self, content_path: &str) {
-        Content::find_all_content(self);
-        Content::new(self, content_path);
+        let content = Content::new(self, content_path);
+        Site::show_content_info(&content);
     }
     pub fn generate(&self) {}
     pub fn publish(&self) {}
     pub fn server(&self) {}
+
+    pub fn list_content(&self) {
+        let paths = Content::find_all_content(self);
+        let list: Vec<Content> = paths.iter().map(|x| Content::load(self, x)).collect();
+        let mut table = Table::new();
+        table.set_titles(row![
+            "TITLE",
+            "CREATE DATE",
+            "TAGS",
+            "CATEGORIES",
+            "PATH",
+            "ID"
+        ]);
+        for item in &list {
+            table.add_row(row![
+                item.title,
+                item.create_date.naive_local().format("%Y-%m-%d %H:%M:%S"),
+                item.tags.join("/"),
+                item.categories.join("/"),
+                item.path,
+                item.id
+            ]);
+        }
+        // table.set_format(*format::consts::FORMAT_DEFAULT);
+        table.printstd();
+        println!("TOTAL:{}", list.len());
+    }
+
+    fn show_content_info(content: &Content) {
+        let mut table = Table::new();
+        table.set_titles(row![
+            "TITLE",
+            "CREATE DATE",
+            "TAGS",
+            "CATEGORIES",
+            "PATH",
+            "ID"
+        ]);
+        table.add_row(row![
+            content.title,
+            content
+                .create_date
+                .naive_local()
+                .format("%Y-%m-%d %H:%M:%S"),
+            content.tags.join("/"),
+            content.categories.join("/"),
+            content.path,
+            content.id
+        ]);
+        table.printstd();
+    }
 }

@@ -3,10 +3,11 @@ use chrono::prelude::*;
 use std::path::Path;
 use std::fs::{remove_file, DirBuilder, File};
 use serde_json;
-use uuid::{Uuid, UuidVersion};
+use uuid::Uuid;
 use std::io::*;
 use super::Site;
 use site::infrastructure::get_all_file;
+use regex::Regex;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Content {
@@ -29,7 +30,7 @@ impl Content {
             tags: vec![],
             categories: vec![],
             create_date: Utc::now(),
-            content: "<content>".to_string(),
+            content: "Content".to_string(),
             path: "".to_string(),
         };
         return content;
@@ -41,9 +42,44 @@ impl Content {
         if !file_path.exists() {
             panic!("The file is not exists.");
         }
-        let file = File::open(file_path).unwrap();
+        let mut file = File::open(file_path).unwrap();
         let mut buffer = String::new();
-        file.read_to_string(&mut buffer);
+        file.read_to_string(&mut buffer).unwrap();
+        let re = Regex::new(
+            r"^\s*``````` json(?P<description>(.|\s)*?)```````(?P<content>(.|\s)*)",
+        ).unwrap();
+
+        let caps = re.captures(&buffer).unwrap();
+
+        let value: Value = serde_json::from_str(&caps["description"]).unwrap();
+        let mut content = Content::create();
+        content.path = path.to_string();
+        let id = Uuid::parse_str(value["id"].as_str().unwrap()).unwrap();
+        content.id = id;
+        content.title = value["title"].as_str().map(|x| x.to_string()).unwrap();
+        content.description = value["description"]
+            .as_str()
+            .map(|x| x.to_string())
+            .unwrap();
+        content.tags = value["tags"]
+            .as_array()
+            .map(|x| x.iter().map(|x| x.as_str().unwrap().to_string()).collect())
+            .unwrap();
+        content.categories = value["categories"]
+            .as_array()
+            .map(|x| x.iter().map(|x| x.as_str().unwrap().to_string()).collect())
+            .unwrap();
+        let create_date = value["create_date"]
+            .as_str()
+            .unwrap()
+            .parse::<DateTime<Utc>>()
+            .unwrap();
+        let create_date = create_date;
+
+        content.create_date = create_date;
+        content.content = caps["content"].to_string();
+        content.path = path.to_string();
+        return content;
     }
 
     pub fn new(site: &Site, path: &str) -> Content {
@@ -56,7 +92,7 @@ impl Content {
                 "The file ({}) is exists. Do you wanna overwrite it.[Y/N]",
                 path
             );
-            stdout().flush();
+            stdout().flush().unwrap();
             let mut buffer = String::new();
             stdin().read_line(&mut buffer).unwrap();
             if buffer.to_uppercase().starts_with("Y") {
@@ -77,7 +113,7 @@ impl Content {
         let mut content = Content::create();
         content.path = file_path.to_str().unwrap().to_string();
         let mark = serde_json::to_string_pretty(&content).unwrap().to_string();
-        let data = format!("{}\n\r{}", mark, content.content);
+        let data = format!("``````` json\r\n{}\r\n```````\r\n{}", mark, content.content);
         file.write_all(&mut data.into_bytes()).unwrap();
         return content;
     }
