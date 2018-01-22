@@ -2,6 +2,7 @@ use std::fs::*;
 use std::path::Path;
 
 pub fn get_all_file(path: &Path) -> Vec<String> {
+    println!("{:?}", path);
     let mut list: Vec<String> = vec![];
     if !path.exists() {
         return vec![];

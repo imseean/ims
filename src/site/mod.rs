@@ -1,12 +1,15 @@
 mod content;
 mod infrastructure;
 use self::content::Content;
+use serde_json::Value;
 use serde_json;
 use std::path::Path;
 use std::fs::{DirBuilder, File};
 use std::io::{Read, Write};
 use prettytable::{format, Table};
 use chrono::{DateTime, Local, TimeZone};
+use self::infrastructure::*;
+use handlebars::Handlebars;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Site {
@@ -16,7 +19,7 @@ pub struct Site {
     pub subtitle: String,
     pub baseurl: String,
     pub theme: String,
-    pub layout_directory: String,
+    pub theme_directory: String,
     pub content_directory: String,
     pub data_directory: String,
     pub build_directory: String,
@@ -41,7 +44,7 @@ impl Site {
             subtitle: "<subtitle>".to_string(),
             baseurl: "<baseurl>".to_string(),
             theme: "default".to_string(),
-            layout_directory: "layout".to_string(),
+            theme_directory: "theme".to_string(),
             content_directory: "content".to_string(),
             data_directory: "data".to_string(),
             build_directory: "build".to_string(),
@@ -78,10 +81,10 @@ impl Site {
                 .as_str()
                 .map(|x| x.to_string())
                 .unwrap_or(site.theme);
-            site.layout_directory = value["layout_directory"]
+            site.theme_directory = value["theme_directory"]
                 .as_str()
                 .map(|x| x.to_string())
-                .unwrap_or(site.layout_directory);
+                .unwrap_or(site.theme_directory);
             site.content_directory = value["content_directory"]
                 .as_str()
                 .map(|x| x.to_string())
@@ -125,7 +128,7 @@ impl Site {
             subtitle: "<subtitle>".to_string(),
             baseurl: "<baseurl>".to_string(),
             theme: "default".to_string(),
-            layout_directory: "layout".to_string(),
+            theme_directory: "theme".to_string(),
             content_directory: "content".to_string(),
             data_directory: "data".to_string(),
             build_directory: "build".to_string(),
@@ -144,7 +147,48 @@ impl Site {
         let content = Content::new(self, content_path);
         Site::show_content_info(&content);
     }
-    pub fn generate(&self) {}
+    pub fn generate(&self) {
+        let layout_path = Path::new(&self.root)
+            .join(&self.theme_directory)
+            .join(&self.theme)
+            .join("layout");
+        let templates = get_all_file(&layout_path);
+        let mut render = Handlebars::new();
+        render.register_helper("json", Box::new(json_helper));
+        render.register_helper("file", Box::new(file_helper));
+        for template in &templates {
+            let path = Path::new(template);
+            if path.extension().unwrap() != "hbs" {
+                continue;
+            }
+            let name = path.strip_prefix(layout_path.to_str().unwrap())
+                .unwrap()
+                .to_str()
+                .unwrap();
+            println!("tp:{}", name);
+            render.register_template_file(name, &path).unwrap();
+            // let mut file = File::open(path).unwrap();
+            // let mut buffer = String::new();
+            // file.read_to_string(&mut buffer).unwrap();
+            // let result = render.render_template_with_file(&buffer, &self).unwrap();
+            // println!("{:?}", result);
+        }
+        for template in &templates {
+            let path = Path::new(template);
+            if path.extension().unwrap() != "hbs" {
+                continue;
+            }
+            if path.file_name().unwrap().to_str().unwrap().starts_with("_") {
+                continue;
+            }
+            let name = path.strip_prefix(layout_path.to_str().unwrap())
+                .unwrap()
+                .to_str()
+                .unwrap();
+            let result = render.render_with_file(name, &self).unwrap();
+            println!("{:?}", result);
+        }
+    }
     pub fn publish(&self) {}
     pub fn server(&self) {}
 
@@ -173,6 +217,10 @@ impl Site {
         // table.set_format(*format::consts::FORMAT_DEFAULT);
         table.printstd();
         println!("TOTAL:{}", list.len());
+    }
+
+    fn create_model(&self) -> Value {
+        unimplemented!();
     }
 
     fn show_content_info(content: &Content) {
