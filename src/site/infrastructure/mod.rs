@@ -1,4 +1,6 @@
-mod file_each;
+mod util;
 mod handlerbars_extension;
-pub use self::file_each::get_all_file;
+mod error;
+pub use self::util::get_all_file;
 pub use self::handlerbars_extension::*;
+pub use self::error::Error;

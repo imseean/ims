@@ -3,6 +3,8 @@ extern crate chrono;
 extern crate clap;
 extern crate handlebars;
 #[macro_use]
+extern crate log;
+#[macro_use]
 extern crate prettytable;
 extern crate regex;
 extern crate serde;
@@ -34,8 +36,8 @@ fn main() {
     //     (@subcommand server =>
     //     )
     // ).get_matches();load
-    let site = site::Site::load("./site");
+    let site = site::Site::load("./site").unwrap();
     site.list_content();
-    site.generate();
+    site.generate().unwrap();
     // site.new_content("hello.md");
 }
