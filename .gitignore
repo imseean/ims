@@ -5,4 +5,5 @@
 .cargo/
 .vscode/
 site/
+site.log
 

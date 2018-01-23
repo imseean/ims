@@ -1,5 +1,4 @@
 mod content;
-mod infrastructure;
 
 use std;
 use std::collections::HashMap;
@@ -14,7 +13,7 @@ use chrono::{DateTime, Local, TimeZone};
 use handlebars::Handlebars;
 
 use self::content::Content;
-use self::infrastructure::*;
+use super::infrastructure::*;
 
 type Result<T> = std::result::Result<T, Error>;
 
@@ -246,10 +245,26 @@ impl Site {
                     })?;
             }
         }
+        let theme_path = Path::new(&self.root)
+            .join(&self.theme_directory)
+            .join(&self.theme);
+        copy_all_file(&theme_path, &data_path, |path| {
+            return !path.starts_with("layout");
+        })?;
         return Ok(());
     }
-    pub fn publish(&self) {}
-    pub fn server(&self) {}
+    pub fn publish(&self) -> Result<()> {
+        let data_path = Path::new(&self.root).join(&self.data_directory);
+
+        let publish_path = Path::new(&self.root).join(&self.publish_directory);
+
+        copy_all_file(&data_path, &publish_path, |_| {
+            return true;
+        })?;
+        return Ok(());
+    }
+
+    //pub fn server(&self) {}
 
     pub fn list_content(&self) -> Result<()> {
         let list: Vec<Content> = Content::load_all(self)?;

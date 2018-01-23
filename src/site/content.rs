@@ -9,7 +9,7 @@ use uuid::Uuid;
 use regex::Regex;
 
 use super::Site;
-use super::infrastructure::{get_all_file, Error};
+use super::super::infrastructure::{get_all_file, Error};
 
 type Result<T> = std::result::Result<T, Error>;
 
@@ -195,7 +195,7 @@ impl Content {
         return Ok(contents);
     }
 
-    pub fn get_all_content_path(site: &Site) -> Result<Vec<String>> {
+    fn get_all_content_path(site: &Site) -> Result<Vec<String>> {
         let parent_path = Path::new(&site.root).join(&site.content_directory);
         let list = get_all_file(&parent_path)?;
         let mut paths = vec![];
