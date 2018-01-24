@@ -1,3 +1,3 @@
 # Ims
 
-A general Static Site Generator.
+A Simple Static Site Generator.
