@@ -14,13 +14,10 @@ impl Error {
             inner_error: Box::new(None),
         };
     }
+
     pub fn with_inner_error(mut self, error: &Display) -> Error {
         let message = format!("{}", error);
         self.inner_error = Box::new(Some(Error::new(&message)));
-        return self;
-    }
-    pub fn with_inner_error_message(mut self, message: &str) -> Error {
-        self.inner_error = Box::new(Some(Error::new(message)));
         return self;
     }
 }
