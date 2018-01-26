@@ -44,27 +44,21 @@ impl Site {
     }
     #[allow(dead_code)]
     pub fn get_data_path(&self) -> Result<String> {
-        let path = Path::new(&self.root)
-            .join(&self.theme_directory)
-            .join(&self.theme);
+        let path = Path::new(&self.root).join(&self.data_directory);
         let path = path.to_str()
             .ok_or(Error::new("Failed to get data path."))?
             .to_string();
         return Ok(path);
     }
     pub fn get_build_path(&self) -> Result<String> {
-        let path = Path::new(&self.root)
-            .join(&self.theme_directory)
-            .join(&self.theme);
+        let path = Path::new(&self.root).join(&self.build_directory);
         let path = path.to_str()
             .ok_or(Error::new("Failed to get build path."))?
             .to_string();
         return Ok(path);
     }
     pub fn get_publish_path(&self) -> Result<String> {
-        let path = Path::new(&self.root)
-            .join(&self.theme_directory)
-            .join(&self.theme);
+        let path = Path::new(&self.root).join(&self.publish_directory);
         let path = path.to_str()
             .ok_or(Error::new("Failed to get publish path."))?
             .to_string();
