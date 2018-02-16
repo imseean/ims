@@ -10,7 +10,6 @@ type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Site {
-    pub name: String,
     pub author: String,
     pub title: String,
     pub subtitle: String,
@@ -68,7 +67,6 @@ impl Site {
     /// Load site config from the specified directory.
     pub fn load(root_path: &str, data: &str) -> Result<Site> {
         let mut site = Site {
-            name: "Ims".to_string(),
             author: "<author>".to_string(),
             title: "<title>".to_string(),
             subtitle: "<subtitle>".to_string(),
@@ -85,10 +83,6 @@ impl Site {
         let value = serde_json::to_value(data).map_err(|error| {
             Error::new("Failed to resolve the config file.").with_inner_error(&error)
         })?;
-        site.name = value["name"]
-            .as_str()
-            .map(|x| x.to_string())
-            .unwrap_or(site.name);
         site.author = value["author"]
             .as_str()
             .map(|x| x.to_string())
@@ -139,7 +133,6 @@ impl Site {
     /// Create a new site with the specified directory.
     pub fn new(root_path: &str) -> Result<Site> {
         let site = Site {
-            name: "Ims".to_string(),
             author: "<author>".to_string(),
             title: "<title>".to_string(),
             subtitle: "<subtitle>".to_string(),

@@ -17,9 +17,8 @@ pub struct Content {
     pub description: String,
     pub is_draft: bool,
     pub tags: Vec<String>,
-    pub categories: Vec<String>,
-    pub create_date: DateTime<Utc>,
-    #[serde(skip)] pub content: String,
+    pub create_time: DateTime<Utc>,
+    #[serde(skip_deserializing)] pub content: String,
     #[serde(skip)] pub path: String,
 }
 
@@ -31,8 +30,7 @@ impl Content {
             description: "<description>".to_string(),
             is_draft: true,
             tags: vec![],
-            categories: vec![],
-            create_date: Utc::now(),
+            create_time: Utc::now(),
             content: "Content".to_string(),
             path: "".to_string(),
         };
@@ -80,24 +78,14 @@ impl Content {
             .ok_or(Error::new(
                 "An error occurred while resolving \"tags\" of the description.",
             ))?;
-        content.categories = value["categories"]
-            .as_array()
-            .map(|x| {
-                x.iter()
-                    .map(|x| x.as_str().unwrap_or("").to_string())
-                    .collect()
-            })
-            .ok_or(Error::new(
-                "An error occurred while resolving \"categories\" of the description.",
-            ))?;
-        let create_date = value["create_date"]
+        let create_time = value["create_time"]
             .as_str()
-            .ok_or(Error::new("\"create_date\" is required."))?
+            .ok_or(Error::new("\"create_time\" is required."))?
             .parse::<DateTime<Utc>>()
             .map_err(|err| {
-                Error::new("The format of \"create_date\" is incorrect.").with_inner_error(&err)
+                Error::new("The format of \"create_time\" is incorrect.").with_inner_error(&err)
             })?;
-        content.create_date = create_date;
+        content.create_time = create_time;
         content.content = caps["content"].to_string();
         content.path = path.to_string();
         return Ok(content);

@@ -9,7 +9,8 @@ impl log::Log for Logger {
     }
 
     fn log(&self, record: &Record) {
-        if self.enabled(record.metadata()) {
+        if self.enabled(record.metadata()) &&record.target().starts_with("ims"){
+
             let mut level = format!("{}", record.level());
             if level == "WARN" {
                 level = "warning".to_string();

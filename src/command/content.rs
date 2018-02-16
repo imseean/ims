@@ -88,16 +88,14 @@ pub fn list_content(site: &Site) -> Result<()> {
         "TITLE",
         "CREATE DATE",
         "TAGS",
-        "CATEGORIES",
         "PATH",
         "ID"
     ]);
     for item in &list {
         table.add_row(row![
             item.title,
-            item.create_date.naive_local().format("%Y-%m-%d %H:%M:%S"),
+            item.create_time.naive_local().format("%Y-%m-%d %H:%M:%S"),
             item.tags.join("/"),
-            item.categories.join("/"),
             item.path,
             item.id
         ]);

@@ -2,7 +2,7 @@ use std;
 use std::path::Path;
 use std::fs;
 use std::io::{Read, Write};
-use std::collections::HashMap;
+use std::cmp::Ordering;
 
 use serde_json::{self, Value};
 use handlebars::Handlebars;
@@ -70,7 +70,6 @@ pub fn load_site(root_path: &str) -> Result<Site> {
 
 pub fn show_site(root_path: &str) -> Result<()> {
     let site = load_site(root_path)?;
-    println!("Site: {}", site.name);
     return Ok(());
 }
 
@@ -147,6 +146,7 @@ fn create_render(site: &Site) -> Result<Handlebars> {
     let mut render = Handlebars::new();
     render.register_helper("json", Box::new(json_helper));
     render.register_helper("file", Box::new(file_helper));
+    render.register_helper("pagination", Box::new(pagination_helper));
     for template in &templates {
         let path = Path::new(template);
         if path.is_dir() {
@@ -171,29 +171,43 @@ fn create_render(site: &Site) -> Result<Handlebars> {
 }
 
 fn create_model(site: &Site) -> Result<Value> {
-    let contents = content::load_all(site)?;
-    let mut tags: HashMap<String, Vec<&Content>> = HashMap::new();
-    let mut categories: HashMap<String, Vec<&Content>> = HashMap::new();
+    let mut contents = content::load_all(site)?;
+    contents.sort_by(|a, b| b.create_time.cmp(&a.create_time));
+    let mut tags: Vec<ItemGroup<&Content>> = vec![];
     for content in &contents {
         for tag in &content.tags {
-            if tags.contains_key(tag) {
-                tags.get_mut(tag).unwrap().push(content);
+            let index = tags.iter().position(|x| x.name == tag.to_string());
+            if let Some(index) = index {
+                tags[index].list.push(content);
             } else {
-                tags.insert(tag.clone(), vec![content]);
-            }
-        }
-        for category in &content.categories {
-            if categories.contains_key(category) {
-                categories.get_mut(category).unwrap().push(content);
-            } else {
-                categories.insert(category.clone(), vec![content]);
+                let mut ig = ItemGroup::new(tag);
+                ig.list.push(content);
+                tags.push(ig);
             }
         }
     }
+    tags.sort_by(|a, b| b.list.len().cmp(&a.list.len()));
+    let mut archives: Vec<ItemGroup<&Content>> = vec![];
+    for content in &contents {
+        let date = content
+            .create_time
+            .naive_local()
+            .format("%Y-%m-%d")
+            .to_string();
+        let index = archives.iter().position(|x| x.name == date);
+        if let Some(index) = index {
+            archives[index].list.push(content);
+        } else {
+            let mut ig = ItemGroup::new(&date);
+            ig.list.push(content);
+            archives.push(ig);
+        }
+    }
+    archives.sort_by(|a, b| b.name.cmp(&a.name));
     return Ok(json!({
             "site":site,
             "contents":&contents,
             "tags":tags,
-            "categories":categories
+            "archives":archives
         }));
 }
