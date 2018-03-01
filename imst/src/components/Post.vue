@@ -1,0 +1,379 @@
+<template>
+  <div class="wrapper" :class="{'with-toc':showTOC,'with-side':showSide}" v-title :data-title="post.title">
+    <article class="post">
+      <header class="header">
+        <h1 class="title"> {{post.title}} </h1>
+        <div class="meta">
+          <span class="author">
+            <span itemprop="name">Sean.W</span>
+          </span>
+          <div class="date">
+            <time :datetime="post.create_time">{{post.create_time}}</time>
+          </div>
+          <div class="tags" v-if="post.tags.length>0">
+            <icon name="tag" class="icon"></icon>
+            <a class="tag" v-for="tag in post.tags" :key="tag">{{tag}}</a>
+          </div>
+        </div>
+      </header>
+      <div class="content" v-html="markdownContent"></div>
+    </article>
+    <div class="side">
+      <span class="toggle" v-on:click="toggleTOC">
+        <icon name="bars" scale="1.5"></icon>
+      </span>
+      <div class="menu">
+        <i-menu></i-menu>
+      </div>
+      <div class="toc">
+        <i-toc :list="toc" :level="1"></i-toc>
+      </div>
+    </div>
+    <i-footer></i-footer>
+  </div>
+</template>
+<script>
+import 'highlight.js/styles/atom-one-dark.css'
+import marked from 'marked'
+import TOC from '@/components/shared/_toc'
+import Menu from '@/components/shared/_menu'
+import Footer from '@/components/shared/_footer'
+export default {
+  created() {
+    this.loadPost()
+  },
+  data() {
+    return {
+      post: {
+        title: '',
+        tags: []
+      },
+      toc: [],
+      showTOC: false,
+      showSide: true
+    }
+  },
+  methods: {
+    loadPost: function() {
+      this.$http.get('post/' + this.$route.params.id + '.json').then(
+        response => {
+          // get body data
+          var options = {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          }
+          response.body.create_time = new Date(
+            response.body.create_time
+          ).toLocaleDateString('en-US', options)
+          this.post = response.body
+        },
+        response => {
+          // error callback
+        }
+      )
+    },
+    toggleTOC: function() {
+      this.showTOC = !this.showTOC
+    },
+    handleScroll: function(e) {
+      if (document.documentElement.scrollTop > 0) {
+        if (this.scrollTop < document.documentElement.scrollTop) {
+          if (!this.showTOC) {
+            this.showSide = false
+          }
+        } else {
+          this.showSide = true
+        }
+      }
+      this.scrollTop = document.documentElement.scrollTop
+    }
+  },
+  computed: {
+    markdownContent: function() {
+      function randomString() {
+        return (
+          'a' +
+          Math.random()
+            .toString(36)
+            .substr(2)
+        )
+      }
+      function getParentItem(list, level) {
+        var currentList = list
+        var currentItem = null
+        for (var i = 1; i <= level; i++) {
+          if (currentList.length > 0) {
+            currentItem = currentList[currentList.length - 1]
+          } else {
+            currentItem = {
+              title: '********',
+              level: i,
+              code: randomString(),
+              child: []
+            }
+            currentList.push(currentItem)
+          }
+          currentList = currentItem.child
+        }
+        return currentItem
+      }
+      var self = this
+      var renderer = new marked.Renderer()
+
+      renderer.heading = function(text, level) {
+        var title = text.replace(/<[^>]+>/g, '')
+        var item = {
+          title: title,
+          level: level,
+          code: randomString(),
+          child: []
+        }
+        if (level === 1) {
+          self.toc.push(item)
+        } else {
+          var parent = getParentItem(self.toc, level - 1)
+          parent.child.push(item)
+        }
+        return (
+          '<h' +
+          level +
+          '><a id="' +
+          item.code +
+          '"></a>' +
+          text +
+          '</h' +
+          level +
+          '>'
+        )
+      }
+      if (this.post.content) {
+        return marked(this.post.content, {
+          renderer: renderer,
+          highlight: function(code) {
+            return require('highlight.js').highlightAuto(code).value
+          }
+        })
+      }
+    }
+  },
+  components: {
+    'i-toc': TOC,
+    'i-menu': Menu,
+    'i-footer': Footer
+  },
+  mounted() {
+    this.scrollTop = 0
+    var self = this
+    var timer = 0
+    var handler = function(e) {
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        self.handleScroll(e)
+      }, 500)
+    }
+    addEventListener('scroll', handler)
+  },
+  destroyed() {
+    removeEventListener('scroll', this.handleScroll)
+  }
+}
+</script>
+<style lang="less" scoped>
+@import url(../assets/_variables.less);
+@import url(../assets/_mixins.less);
+.wrapper {
+  overflow-x: hidden;
+  .toggle {
+    vertical-align: middle;
+  }
+  .menu {
+    display: inline-block;
+    vertical-align: middle;
+    text-align: right;
+  }
+  .toc {
+    overflow-y: auto;
+  }
+
+  .post {
+    transition: margin-right 0.3s ease;
+    .header,
+    .content,
+    .footer {
+      margin: 0 auto;
+    }
+    .header {
+      .title {
+        margin-top: 0;
+        margin-bottom: 0;
+        text-transform: none;
+        font-size: 1.5em;
+        line-height: 1.25;
+        color: @color-accent;
+      }
+      .meta {
+        margin-top: 0;
+        margin-bottom: 1rem;
+        * {
+          color: @color-normal-x;
+          font-size: 0.85rem;
+        }
+      }
+      .author {
+        text-transform: uppercase;
+        letter-spacing: 0.01em;
+        font-weight: 700;
+      }
+      .date {
+        display: inline;
+      }
+      .tags {
+        .icon {
+          vertical-align: middle;
+        }
+        .tag {
+          vertical-align: middle;
+          &::after {
+            content: ', ';
+          }
+          &:last-child {
+            &::after {
+              content: '';
+            }
+          }
+        }
+      }
+    }
+    .content /deep/ a {
+      color: @color-normal;
+      .underline(5px, @color-normal);
+      &:hover {
+        color: @color-anti;
+        .underline(5px, @color-anti);
+      }
+    }
+  }
+}
+@media (min-width: @screen-size) {
+  .wrapper {
+    padding: @large-margin;
+    .toggle {
+      position: fixed;
+      top: 32px;
+      right: 32px;
+    }
+    .toc {
+      position: fixed;
+      width: 400px;
+      margin-top: 64px;
+      padding-right: 32px;
+      padding-left: 32px;
+      margin-bottom: 32px;
+      top: 0px;
+      bottom: 0px;
+      right: -400px;
+      transition: right 0.3s ease;
+    }
+    .menu {
+      position: fixed;
+      top: -64px;
+      right: 0px;
+      margin-right: 64px;
+      width: 400px;
+      transition: top 0.3s ease;
+    }
+    .post {
+      max-width: 900px;
+      margin: 0 auto;
+      .tags {
+        display: inline-block;
+        &::before {
+          content: '|';
+          margin-right: 10px;
+        }
+      }
+    }
+    &.with-toc {
+      .toc {
+        right: 0px;
+        background: @color-main;
+      }
+      .menu {
+        top: 32px;
+      }
+      transition: margin 0.3s ease;
+      margin-right: 400px;
+    }
+  }
+}
+@media (max-width: @screen-size) {
+  .wrapper {
+    padding: @small-margin;
+    .side {
+      position: fixed;
+      top: -64px;
+      left: 0px;
+      right: 0px;
+      height: 64px;
+      line-height: 64px;
+      background: @color-main;
+      transition: top 0.3s ease;
+    }
+    .toggle {
+      display: inline-block;
+      vertical-align: middle;
+      margin: 0px 16px;
+    }
+    .menu {
+      display: inline-block;
+      vertical-align: middle;
+      padding: 0px;
+      overflow-x: auto;
+      position: absolute;
+      margin: 0px;
+      top: auto;
+      right: 16px;
+      left: 64px;
+    }
+    .toc {
+      position: fixed;
+      top: 64px;
+      left: -60%;
+      bottom: 16px;
+      width: 60%;
+      transition: left 0.3s ease;
+    }
+    .post {
+      margin-top: 64px;
+      position: relative;
+      transition: left 0.3s ease;
+      left: 0px;
+      .tags {
+        display: block;
+        &::before {
+          content: '';
+        }
+      }
+      .header,
+      .content,
+      .footer {
+        width: 100%;
+      }
+    }
+    &.with-side {
+      .side {
+        top: 0px;
+      }
+    }
+    &.with-toc {
+      .toc {
+        left: 0px;
+      }
+      .post {
+        left: 60%;
+      }
+    }
+  }
+}
+</style>

@@ -1,3 +1,5 @@
-# Ims
+# 静态博客
 
-A Simple Static Site Generator.
++ ims : 主程序
++ imst : 默认主题
+

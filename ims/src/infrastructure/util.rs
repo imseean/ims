@@ -29,7 +29,11 @@ pub fn get_all_file(path: &Path) -> Result<Vec<String>> {
     return Ok(list);
 }
 
-pub fn copy_all_file<F: Fn(&Path) -> bool>(source: &Path, target: &Path, filter: F) -> Result<()> {
+pub fn copy_all_file<F: Fn(&Path, &Path) -> bool>(
+    source: &Path,
+    target: &Path,
+    filter: F,
+) -> Result<()> {
     if source.is_file() {
         return Err(Error::new("Source path must be a directory."));
     }
@@ -57,8 +61,8 @@ pub fn copy_all_file<F: Fn(&Path) -> bool>(source: &Path, target: &Path, filter:
                     "The Path is not The child path of the parent path."
                 )).with_inner_error(&err)
             })?;
-        if filter(&path) {
-            let target_file_path = target.join(path);
+        let target_file_path = target.join(path);
+        if filter(&path, &target_file_path) {
             let parent_path = target_file_path
                 .parent()
                 .ok_or(Error::new("Failed to get parent directory."))?;

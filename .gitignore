@@ -1,9 +1,5 @@
 /target/
-**/*.rs.bk
+.vscode
+.DS_Store
 
-
-.cargo/
-.vscode/
-site/
-site.log
 

@@ -1,8 +1,11 @@
 extern crate chrono;
 extern crate clap;
+extern crate colored;
 extern crate handlebars;
+extern crate iron;
 #[macro_use]
 extern crate log;
+extern crate mount;
 #[macro_use]
 extern crate prettytable;
 extern crate regex;
@@ -11,6 +14,7 @@ extern crate serde;
 extern crate serde_derive;
 #[macro_use]
 extern crate serde_json;
+extern crate staticfile;
 extern crate uuid;
 
 mod model;
@@ -19,7 +23,9 @@ mod command;
 
 use log::LevelFilter;
 use clap::{App, Arg, SubCommand};
+use colored::*;
 
+use command::{content_command, site_command};
 use infrastructure::Logger;
 
 static LOGGER: Logger = Logger {
@@ -33,7 +39,7 @@ fn main() {
     let app = App::new("Ims")
         .version("1.0")
         .author("S W. <imseean@gmail.com>")
-        .about("A simple static blog.")
+        .about("A Simple Static Site Generator.")
         .version_short("v")
         .subcommand(
             SubCommand::with_name("new")
@@ -51,8 +57,8 @@ fn main() {
                 .display_order(1),
         )
         .subcommand(
-            SubCommand::with_name("status")
-                .about("Show the status of the current site.")
+            SubCommand::with_name("info")
+                .about("Show info of the current site.")
                 .display_order(2),
         )
         .subcommand(
@@ -64,6 +70,17 @@ fn main() {
             SubCommand::with_name("publish")
                 .about("Publish the current site.")
                 .display_order(4),
+        )
+        .subcommand(
+            SubCommand::with_name("server")
+                .about("Lanuch server.")
+                .arg(
+                    Arg::with_name("PORT")
+                        .help("Port of the server.")
+                        .default_value("8765")
+                        .takes_value(true),
+                )
+                .display_order(5),
         )
         .subcommand(
             SubCommand::with_name("content")
@@ -89,57 +106,87 @@ fn main() {
                         .about("List all contents.")
                         .display_order(1),
                 )
-                .display_order(5),
+                .display_order(6),
         );
     let matches = app.get_matches();
-    if let None = matches.subcommand_name() {
-        println!("{}", matches.usage());
-    }
+    handle_matches(matches);
+}
 
-    if let Some(_) = matches.subcommand_matches("new") {
-        if let Err(error) = command::new_site() {
+fn handle_matches(matches: clap::ArgMatches) {
+    if let Some(_) = matches.subcommand_matches("init") {
+        if let Err(error) = site_command::init() {
             error!("{}", error);
+        } else {
+            println!("{0:>12}", "Finished".green().bold());
         }
+        return;
     };
-    if let Some(matches) = matches.subcommand_matches("init") {
+    if let Some(matches) = matches.subcommand_matches("new") {
         let path = matches.value_of("PATH").unwrap_or(".");
-        if let Err(error) = command::init_site(path) {
+        if let Err(error) = site_command::new(path) {
             error!("{}", error);
+        } else {
+            println!("{0:>12}", "Finished".green().bold());
         }
+        return;
     };
-    if let Some(_) = matches.subcommand_matches("status") {
-        if let Err(error) = command::show_site(".") {
+    if let Some(_) = matches.subcommand_matches("info") {
+        if let Err(error) = site_command::info(".") {
             error!("{}", error);
+        } else {
+            println!("{0:>12}", "Finished".green().bold());
         }
+        return;
     };
     if let Some(_) = matches.subcommand_matches("build") {
-        if let Err(error) = command::build_site(".") {
+        if let Err(error) = site_command::build(".") {
             error!("{}", error);
+        } else {
+            println!("{0:>12}", "Finished".green().bold());
         }
+        return;
     };
     if let Some(_) = matches.subcommand_matches("publish") {
-        if let Err(error) = command::publish_site(".") {
+        if let Err(error) = site_command::publish(".") {
             error!("{}", error);
+        } else {
+            println!("{0:>12}", "Finished".green().bold());
         }
+        return;
+    };
+    if let Some(matches) = matches.subcommand_matches("server") {
+        let port = matches
+            .value_of("PORT")
+            .unwrap_or("8765")
+            .parse::<u64>()
+            .unwrap_or(8765);
+        if let Err(error) = site_command::server(".", port) {
+            error!("{}", error);
+        } else {
+            println!("{0:>12}", "Finished".green().bold());
+        }
+        return;
     };
     if let Some(matches) = matches.subcommand_matches("content") {
-        let site = match command::load_site(".") {
-            Ok(site) => site,
-            Err(error) => {
-                error!("{}", error);
-                return;
-            }
-        };
         if let Some(matches) = matches.subcommand_matches("new") {
             let path = matches.value_of("PATH").unwrap_or(".");
-            if let Err(error) = command::new_content(&site, path) {
+            if let Err(error) = content_command::new(".", path) {
                 error!("{}", error);
+            } else {
+                println!("{0:>12}", "Finished".green().bold());
             }
+            return;
         }
         if let Some(_) = matches.subcommand_matches("list") {
-            if let Err(error) = command::list_content(&site) {
+            if let Err(error) = content_command::list(".") {
                 error!("{}", error);
+            } else {
+                println!("{0:>12}", "Finished".green().bold());
             }
+            return;
         }
+        println!("{}", matches.usage());
+        return;
     };
+    println!("{}", matches.usage());
 }
