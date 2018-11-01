@@ -1,23 +1,5 @@
 <template>
   <div class="wrapper" :class="{'with-toc':showTOC,'with-side':showSide}" v-title :data-title="post.title">
-    <article class="post">
-      <header class="header">
-        <h1 class="title"> {{post.title}} </h1>
-        <div class="meta">
-          <span class="author">
-            <span itemprop="name">Sean.W</span>
-          </span>
-          <div class="date">
-            <time :datetime="post.create_time">{{post.create_time}}</time>
-          </div>
-          <div class="tags" v-if="post.tags.length>0">
-            <icon name="tag" class="icon"></icon>
-            <a class="tag" v-for="tag in post.tags" :key="tag">{{tag}}</a>
-          </div>
-        </div>
-      </header>
-      <div class="content" v-html="markdownContent"></div>
-    </article>
     <div class="side">
       <span class="toggle" v-on:click="toggleTOC">
         <icon name="bars" scale="1.5"></icon>
@@ -29,15 +11,40 @@
         <i-toc :list="toc" :level="1"></i-toc>
       </div>
     </div>
-    <i-footer></i-footer>
+    <div class="content-wrapper">
+      <article class="post">
+        <header class="header">
+          <h1 class="title"> {{post.title}} </h1>
+          <div class="meta">
+            <!-- <span class="author">
+              <span itemprop="name">Sean.W</span>
+            </span> -->
+            <div class="date">
+              <time :datetime="post.create_time">{{post.create_time}}</time>
+            </div>
+            <div class="tags" v-if="post.tags.length>0">
+              <icon name="tag" class="icon"></icon>
+              <router-link class="tag" v-for="tag in post.tags" :key="tag" :to="{
+                path: '/tag/' + tag,
+              }">{{tag}}</router-link>
+            </div>
+          </div>
+        </header>
+        <div class="content" v-html="markdownContent"></div>
+      </article>
+      <i-footer></i-footer>
+    </div>
   </div>
 </template>
 <script>
-import 'highlight.js/styles/atom-one-dark.css'
 import marked from 'marked'
 import TOC from '@/components/shared/_toc'
 import Menu from '@/components/shared/_menu'
 import Footer from '@/components/shared/_footer'
+import 'vue-awesome/icons/bars'
+import 'vue-awesome/icons/tag'
+import Icon from 'vue-awesome/components/Icon'
+
 export default {
   created() {
     this.loadPost()
@@ -91,14 +98,17 @@ export default {
   },
   computed: {
     markdownContent: function() {
-      function randomString() {
-        return (
-          'a' +
-          Math.random()
-            .toString(36)
-            .substr(2)
-        )
+      function hash(str) {
+        var hash = 0
+        if (str.length === 0) return hash
+        for (var i = 0; i < str.length; i++) {
+          var chr = str.charCodeAt(i)
+          hash = ((hash << 5) - hash) + chr
+          hash |= 0
+        }
+        return hash
       }
+
       function getParentItem(list, level) {
         var currentList = list
         var currentItem = null
@@ -109,7 +119,7 @@ export default {
             currentItem = {
               title: '********',
               level: i,
-              code: randomString(),
+              code: 'a' + hash('********'),
               child: []
             }
             currentList.push(currentItem)
@@ -120,13 +130,12 @@ export default {
       }
       var self = this
       var renderer = new marked.Renderer()
-
       renderer.heading = function(text, level) {
         var title = text.replace(/<[^>]+>/g, '')
         var item = {
           title: title,
           level: level,
-          code: randomString(),
+          code: 'a' + hash(title),
           child: []
         }
         if (level === 1) {
@@ -138,10 +147,9 @@ export default {
         return (
           '<h' +
           level +
-          '><a id="' +
+          ' id="' +
           item.code +
-          '"></a>' +
-          text +
+          '">' + text +
           '</h' +
           level +
           '>'
@@ -149,10 +157,7 @@ export default {
       }
       if (this.post.content) {
         return marked(this.post.content, {
-          renderer: renderer,
-          highlight: function(code) {
-            return require('highlight.js').highlightAuto(code).value
-          }
+          renderer: renderer
         })
       }
     }
@@ -160,19 +165,12 @@ export default {
   components: {
     'i-toc': TOC,
     'i-menu': Menu,
-    'i-footer': Footer
+    'i-footer': Footer,
+    'icon': Icon
   },
   mounted() {
     this.scrollTop = 0
-    var self = this
-    var timer = 0
-    var handler = function(e) {
-      clearTimeout(timer)
-      timer = setTimeout(() => {
-        self.handleScroll(e)
-      }, 500)
-    }
-    addEventListener('scroll', handler)
+    addEventListener('scroll', this.handleScroll)
   },
   destroyed() {
     removeEventListener('scroll', this.handleScroll)
@@ -229,6 +227,7 @@ export default {
         display: inline;
       }
       .tags {
+        display: inline;
         .icon {
           vertical-align: middle;
         }
@@ -283,9 +282,12 @@ export default {
       width: 400px;
       transition: top 0.3s ease;
     }
-    .post {
+    .content-wrapper{
       max-width: 900px;
       margin: 0 auto;
+      padding: 32px;
+    }
+    .post {
       .tags {
         display: inline-block;
         &::before {
@@ -319,6 +321,7 @@ export default {
       line-height: 64px;
       background: @color-main;
       transition: top 0.3s ease;
+      z-index: 999;
     }
     .toggle {
       display: inline-block;
@@ -371,7 +374,7 @@ export default {
         left: 0px;
       }
       .post {
-        left: 60%;
+        left: 70%;
       }
     }
   }

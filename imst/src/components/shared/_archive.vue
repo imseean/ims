@@ -46,7 +46,7 @@ export default {
     margin-left: 0;
     margin-bottom: 1rem;
     .meta {
-      display: block;
+      display: inline-block;
       font-size: 14px;
       color: #666;
       min-width: 100px;

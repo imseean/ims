@@ -2,9 +2,10 @@
 
 use handlebars::{Handlebars, Helper, RenderContext, RenderError, Renderable};
 use serde::Serialize;
-use std::collections::HashMap;
-use serde_json::Value;
 use serde_json;
+use serde_json::Value;
+use std::collections::BTreeMap;
+use std::collections::HashMap;
 /// # Render the json Format of the object.
 ///
 /// A helper for handlebars
@@ -22,7 +23,8 @@ pub fn json_helper(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result
 pub fn file_helper(h: &Helper, r: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
     let template = h.template();
 
-    let parms: Vec<String> = h.params()
+    let parms: Vec<String> = h
+        .params()
         .iter()
         .map(|x| {
             let mut param = String::new();
@@ -36,8 +38,7 @@ pub fn file_helper(h: &Helper, r: &Handlebars, rc: &mut RenderContext) -> Result
                 }
             }
             return param;
-        })
-        .collect();
+        }).collect();
     let file_path = parms.join("");
 
     match template {
@@ -75,7 +76,8 @@ pub fn pagination_helper(
     let count = (list.len() + size + 1) / size;
 
     for index in 0..count {
-        let page: Vec<Value> = list.clone()
+        let page: Vec<Value> = list
+            .clone()
             .into_iter()
             .skip(index * size)
             .take(size)
@@ -90,6 +92,14 @@ pub fn pagination_helper(
             serde_json::to_value(index + 1).unwrap(),
         );
         local_rc.set_local_var("@count".to_string(), serde_json::to_value(count).unwrap());
+        if let Some(block_param) = h.block_param() {
+            let mut map = BTreeMap::new();
+            map.insert(block_param.to_string(), serde_json::to_value(&page).unwrap());
+            local_rc.push_block_context(&map).unwrap();
+        } else {
+            local_rc.push_block_context(&page).unwrap();
+        }
+
         local_rc.push_block_context(&page).unwrap();
         match template {
             Some(t) => {
@@ -157,9 +167,9 @@ impl HandlebarsExtension for Handlebars {
 }
 
 mod writer {
+    use std::collections::HashMap;
     use std::io::prelude::*;
     use std::io::Result;
-    use std::collections::HashMap;
     pub struct TemplateWriter {
         pub map: HashMap<String, String>,
         pub buffer: Vec<u8>,

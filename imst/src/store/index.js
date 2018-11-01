@@ -8,7 +8,8 @@ export default {
       title: '',
       mode: 'hash'
     },
-    posts: []
+    posts: [],
+    tags: []
   },
   getters: {
     site: state => {
@@ -25,6 +26,20 @@ export default {
         data.create_time = data.create_time.toLocaleDateString('en-US', options)
         return data
       })
+    },
+    tags: state => {
+      var options = {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      }
+      return state.tags.map(tag => {
+        tag.list.map(post => {
+          post.create_time = post.create_time.toLocaleDateString('en-US', options)
+          return post
+        })
+        return tag
+      })
     }
   },
   mutations: {
@@ -36,6 +51,9 @@ export default {
     },
     setPosts(state, payload) {
       state.posts = payload.posts
+    },
+    setTags(state, payload) {
+      state.tags = payload.tags
     }
   },
   actions: {
@@ -75,8 +93,32 @@ export default {
         )
       })
     },
+    loadTags({ commit }) {
+      return new Promise((resolve, reject) => {
+        Vue.http.get('tag.json').then(
+          response => {
+            var tags = response.body
+            tags.map(tag => {
+              tag.list.map(post => {
+                post.create_time = new Date(post.create_time)
+                return post
+              })
+              return tag
+            })
+            commit({
+              type: 'setTags',
+              tags: tags
+            })
+            resolve(tags)
+          },
+          response => {
+            reject(new Error(response.statusText))
+          }
+        )
+      })
+    },
     init({ dispatch }) {
-      return Promise.all([dispatch('loadSite'), dispatch('loadPosts')])
+      return Promise.all([dispatch('loadSite'), dispatch('loadPosts'), dispatch('loadTags')])
     }
   }
 }

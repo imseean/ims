@@ -1,0 +1,21 @@
+{{~#file "./data/tag.json"~}}
+[
+    {{~#each tags as |tag|~}}
+        {
+            "name":{{json tag.name}},
+            "list":[
+                {{~#each list as |content|~}}
+                    {
+                        "id":{{json content.id}},
+                        "title":{{json content.title}},
+                        "description":{{json content.description}},
+                        "tags":{{json content.tags}},
+                        "create_time":{{json content.create_time}}
+                    }
+                    {{~#unless @last~}},{{~/unless~}}
+                {{~/each~}}               
+            ]
+        }{{~#unless @last~}},{{~/unless~}}
+    {{~/each~}}
+]
+{{~/file~}}

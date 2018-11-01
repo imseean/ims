@@ -2,7 +2,7 @@
   <ul class="_menu">
     <li v-for="menu in site.menus" :key="menu.title">
       <router-link v-if="menu.type=='router-link'" :to="menu">{{menu.title}}</router-link>
-      <a v-if="menu.type=='a'" :href="menu.path" :target="menu.target">{{menu.title}}</a>
+      <a v-if="menu.type=='link'" :href="menu.path" :target="menu.target">{{menu.title}}</a>
     </li>
   </ul>
 </template>

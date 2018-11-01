@@ -18,7 +18,7 @@ export default {
   data() {
     var opacity = 1
     for (var i = 0; i < this.level; i++) {
-      opacity -= 0.1
+      opacity -= 0.2
     }
     return {
       opacity: opacity,

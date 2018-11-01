@@ -3,15 +3,15 @@ use std::fs;
 use std::io::{Read, Write};
 use std::path::Path;
 
-use serde_json::{self, Value};
-use handlebars::Handlebars;
 use colored::*;
+use handlebars::Handlebars;
 use iron::prelude::*;
-use staticfile::Static;
 use mount::Mount;
+use serde_json::{self, Value};
+use staticfile::Static;
 
-pub use super::*;
 use super::super::infrastructure::*;
+pub use super::*;
 
 type Result<T> = std::result::Result<T, Error>;
 
@@ -54,18 +54,30 @@ fn default_root() -> String {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Site {
-    #[serde(default = "default_title")] pub title: String,
-    #[serde(default = "default_author")] pub author: String,
-    #[serde(default = "default_subtitle")] pub subtitle: String,
-    #[serde(default = "default_address")] pub address: String,
-    #[serde(default = "default_theme")] pub theme: String,
-    #[serde(default = "default_meta")] pub meta: Value,
-    #[serde(default = "default_theme_directory")] pub theme_directory: String,
-    #[serde(default = "default_content_directory")] pub content_directory: String,
-    #[serde(default = "default_data_directory")] pub data_directory: String,
-    #[serde(default = "default_build_directory")] pub build_directory: String,
-    #[serde(default = "default_publish_directory")] pub publish_directory: String,
-    #[serde(skip_serializing, default = "default_root")] pub root: String,
+    #[serde(default = "default_title")]
+    pub title: String,
+    #[serde(default = "default_author")]
+    pub author: String,
+    #[serde(default = "default_subtitle")]
+    pub subtitle: String,
+    #[serde(default = "default_address")]
+    pub address: String,
+    #[serde(default = "default_theme")]
+    pub theme: String,
+    #[serde(default = "default_meta")]
+    pub meta: Value,
+    #[serde(default = "default_theme_directory")]
+    pub theme_directory: String,
+    #[serde(default = "default_content_directory")]
+    pub content_directory: String,
+    #[serde(default = "default_data_directory")]
+    pub data_directory: String,
+    #[serde(default = "default_build_directory")]
+    pub build_directory: String,
+    #[serde(default = "default_publish_directory")]
+    pub publish_directory: String,
+    #[serde(skip_serializing, default = "default_root")]
+    pub root: String,
 }
 
 impl Site {
@@ -73,14 +85,16 @@ impl Site {
         let path = Path::new(&self.root)
             .join(&self.theme_directory)
             .join(&self.theme);
-        let path = path.to_str()
+        let path = path
+            .to_str()
             .ok_or(Error::new("Failed to get theme path."))?
             .to_string();
         return Ok(path);
     }
     pub fn get_content_path(&self) -> Result<String> {
         let path = Path::new(&self.root).join(&self.content_directory);
-        let path = path.to_str()
+        let path = path
+            .to_str()
             .ok_or(Error::new("Failed to get content path."))?
             .to_string();
         return Ok(path);
@@ -88,21 +102,24 @@ impl Site {
     #[allow(dead_code)]
     pub fn get_data_path(&self) -> Result<String> {
         let path = Path::new(&self.root).join(&self.data_directory);
-        let path = path.to_str()
+        let path = path
+            .to_str()
             .ok_or(Error::new("Failed to get data path."))?
             .to_string();
         return Ok(path);
     }
     pub fn get_build_path(&self) -> Result<String> {
         let path = Path::new(&self.root).join(&self.build_directory);
-        let path = path.to_str()
+        let path = path
+            .to_str()
             .ok_or(Error::new("Failed to get build path."))?
             .to_string();
         return Ok(path);
     }
     pub fn get_publish_path(&self) -> Result<String> {
         let path = Path::new(&self.root).join(&self.publish_directory);
-        let path = path.to_str()
+        let path = path
+            .to_str()
             .ok_or(Error::new("Failed to get publish path."))?
             .to_string();
         return Ok(path);
@@ -125,7 +142,7 @@ impl Site {
                     Error::new("Failed to create the site directory.").with_inner_error(&err)
                 })?;
         }
-        let config_path = path.join("config.json");
+        let config_path = path.join("site.json");
         if config_path.exists() && config_path.is_file() {
             return Err(Error::new(
                 "Failed to create a new site. because a site exists in the current directory.",
@@ -154,7 +171,7 @@ impl Site {
         if !path.exists() {
             return Err(Error::new("The dircetory is not exists."));
         }
-        let config_path = path.join("config.json");
+        let config_path = path.join("site.json");
         if !config_path.exists() {
             return Err(Error::new("The config file is not exists."));
         }
@@ -262,6 +279,7 @@ impl Site {
     }
 
     pub fn server(&self, port: u64) -> Result<()> {
+        self.build()?;
         let mut mount = Mount::new();
         mount.mount("/", Static::new(Path::new(&self.root).join("build")));
         let address = format!("127.0.0.1:{}", port);
@@ -282,6 +300,7 @@ impl Site {
         let mut render = Handlebars::new();
         render.register_helper("json", Box::new(json_helper));
         render.register_helper("file", Box::new(file_helper));
+        render.register_helper("pagination", Box::new(pagination_helper));
         for template in &templates {
             let path = Path::new(template);
             if path.is_dir() {
@@ -294,13 +313,14 @@ impl Site {
             } else {
                 continue;
             }
-            let name = path.strip_prefix(layout_path
-                .to_str()
-                .ok_or(Error::new("Format of \"path\" is incorrect ."))?)
-                .map_err(|err| {
+            let name = path
+                .strip_prefix(
+                    layout_path
+                        .to_str()
+                        .ok_or(Error::new("Format of \"path\" is incorrect ."))?,
+                ).map_err(|err| {
                     Error::new("Failed to get the template name.").with_inner_error(&err)
-                })?
-                .to_str()
+                })?.to_str()
                 .ok_or(Error::new("Format of \"path\" is incorrect ."))?;
             trace!("Registering template:{}", name);
             render.register_template_file(name, &path).map_err(|err| {
@@ -329,10 +349,24 @@ impl Site {
         }
         tags.sort_by(|a, b| b.list.len().cmp(&a.list.len()));
 
+        let mut archives: Vec<ItemGroup<&Content>> = vec![];
+        for content in &contents {
+            let date =  content.create_time.format("%b %Y").to_string();
+            let index = archives.iter().position(|x| x.name == date);
+            if let Some(index) = index {
+                archives[index].list.push(content);
+            } else {
+                let mut ig = ItemGroup::new(&date);
+                ig.list.push(content);
+                archives.push(ig);
+            }
+        }
+
         return Ok(json!({
             "site":self.clone(),
             "contents":&contents,
-            "tags":tags
+            "tags":tags,
+            "archives":archives
         }));
     }
 }
