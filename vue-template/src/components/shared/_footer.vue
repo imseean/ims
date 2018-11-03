@@ -1,6 +1,6 @@
 <template>
   <footer class="footer">
-    <div class="footer-left"> Copyright © 2018 BAIYAN</div>
+    <div class="footer-left"> Copyright © 2018 BAIYAN </div>
     <div class="footer-right">
       <nav>
         <ul>

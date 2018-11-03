@@ -16,6 +16,7 @@ extern crate serde_derive;
 extern crate serde_json;
 extern crate staticfile;
 extern crate uuid;
+extern crate pulldown_cmark;
 
 mod model;
 mod infrastructure;

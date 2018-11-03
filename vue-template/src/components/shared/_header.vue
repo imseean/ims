@@ -20,6 +20,8 @@
 <script>
 import Logo from '@/assets/logo.png'
 import { mapGetters } from 'vuex'
+import 'vue-awesome/icons/bars'
+import Icon from 'vue-awesome/components/Icon'
 export default {
   data() {
     return {
@@ -34,6 +36,9 @@ export default {
   },
   computed: {
     ...mapGetters(['site'])
+  },
+  components: {
+    'icon': Icon
   }
 }
 </script>

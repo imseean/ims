@@ -1,11 +1,24 @@
 //! # Contain some helper of the handlebars
 
+use chrono::prelude::*;
 use handlebars::{Handlebars, Helper, RenderContext, RenderError, Renderable};
+use pulldown_cmark::{html, Event, Parser, Tag};
 use serde::Serialize;
 use serde_json;
 use serde_json::Value;
+use std::borrow::Cow;
+use std::collections::hash_map::DefaultHasher;
 use std::collections::BTreeMap;
 use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
+
+/// # Get Hashcode
+fn hash(value: String) -> u64 {
+    let mut state = DefaultHasher::new();
+    value.hash(&mut state);
+    state.finish()
+}
+
 /// # Render the json Format of the object.
 ///
 /// A helper for handlebars
@@ -13,6 +26,163 @@ pub fn json_helper(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result
     if let Some(param) = h.param(0) {
         let json = param.value();
         rc.writer.write(&json.to_string().into_bytes()).is_ok();
+    }
+    Ok(())
+}
+
+/// # Render the json Format of the object.
+///
+/// A helper for handlebars
+pub fn date_format_helper(
+    h: &Helper,
+    _: &Handlebars,
+    rc: &mut RenderContext,
+) -> Result<(), RenderError> {
+    if let Some(param) = h.param(0) {
+        let json = param.value();
+        if json.is_string() {
+            let date_string = json.as_str().unwrap();
+            if let Ok(date) = date_string.parse::<DateTime<Utc>>() {
+                let result = date.format("%b %e, %Y").to_string();
+                rc.writer.write(&result.to_string().into_bytes()).is_ok();
+            }
+        }
+    }
+    Ok(())
+}
+
+/// # Get count of the list object.
+///
+/// A helper for handlebars
+pub fn count_helper(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
+    if let Some(param) = h.param(0) {
+        let json = param.value();
+        if json.is_array() {
+            let count = json.as_array().unwrap().len();
+            rc.writer.write(&count.to_string().into_bytes()).is_ok();
+        }
+    }
+    Ok(())
+}
+
+/// # Convert markdown to html.
+///
+/// A helper for handlebars
+pub fn markdown_helper(
+    h: &Helper,
+    _: &Handlebars,
+    rc: &mut RenderContext,
+) -> Result<(), RenderError> {
+    if let Some(param) = h.param(0) {
+        let json = param.value();
+        if json.is_string() {
+            let document = json.as_str().unwrap();
+            let parser = Parser::new(document);
+            let mut header_level = -1;
+            let parser = parser.map(|event| match event {
+                Event::Start(Tag::Header(level)) => {
+                    header_level = level;
+                    Event::Start(Tag::Header(level))
+                }
+                Event::Text(text) => {
+                    if header_level > -1 {
+                        let name = text.clone().into_owned();
+                        let data = Cow::from(format!(
+                            "<a id=\"anchor_{}\"></a>{}",
+                            hash(name.clone()),
+                            name
+                        ));
+                        Event::Html(data)
+                    } else {
+                        Event::Text(text)
+                    }
+                }
+                Event::End(Tag::Header(level)) => {
+                    header_level = -1;
+                    Event::End(Tag::Header(level))
+                }
+                _ => event,
+            });
+            let mut result = String::new();
+            html::push_html(&mut result, parser);
+            rc.writer.write(&result.into_bytes()).is_ok();
+        }
+    }
+    Ok(())
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct TocItem {
+    pub name: String,
+    pub level: i32,
+    pub id: String,
+}
+impl TocItem {
+    pub fn new(name: &str, level: i32, id: &str) -> TocItem {
+        return TocItem {
+            name: name.to_string(),
+            level: level,
+            id: id.to_string(),
+        };
+    }
+}
+
+/// # Get toc from markdown.
+///
+/// A helper for handlebars
+pub fn markdown_toc_helper(
+    h: &Helper,
+    r: &Handlebars,
+    rc: &mut RenderContext,
+) -> Result<(), RenderError> {
+    if let Some(param) = h.param(0) {
+        let json = param.value();
+        if json.is_string() {
+            let document = json.as_str().unwrap();
+            let parser = Parser::new(document);
+            let mut header_level = -1;
+            let mut toc: Vec<TocItem> = vec![];
+            {
+                let parser = parser.map(|event| match event {
+                    Event::Start(Tag::Header(level)) => {
+                        header_level = level;
+                        Event::Start(Tag::Header(level))
+                    }
+                    Event::Text(text) => {
+                        if header_level > -1 {
+                            let name = text.clone().into_owned();
+                            let id = format!("anchor_{}", hash(name.clone()));
+                            let item = TocItem::new(&name, header_level, &id);
+                            toc.push(item);
+                        }
+                        Event::Text(text)
+                    }
+                    Event::End(Tag::Header(level)) => {
+                        header_level = -1;
+                        Event::End(Tag::Header(level))
+                    }
+                    _ => event,
+                });
+                let mut result = String::new();
+                html::push_html(&mut result, parser);
+            }
+            let mut local_rc = rc.derive();
+            if let Some(block_param) = h.block_param() {
+                let mut map = BTreeMap::new();
+                map.insert(block_param.to_string(), serde_json::to_value(&toc).unwrap());
+                local_rc.push_block_context(&map).unwrap();
+            } else {
+                local_rc.push_block_context(&toc).unwrap();
+            }
+            let template = h.template();
+            match template {
+                Some(t) => {
+                    t.render(r, &mut local_rc).unwrap();
+                }
+                None => {}
+            }
+            local_rc.pop_block_context();
+        }
     }
     Ok(())
 }
@@ -94,13 +264,16 @@ pub fn pagination_helper(
         local_rc.set_local_var("@count".to_string(), serde_json::to_value(count).unwrap());
         if let Some(block_param) = h.block_param() {
             let mut map = BTreeMap::new();
-            map.insert(block_param.to_string(), serde_json::to_value(&page).unwrap());
+            map.insert(
+                block_param.to_string(),
+                serde_json::to_value(&page).unwrap(),
+            );
             local_rc.push_block_context(&map).unwrap();
         } else {
             local_rc.push_block_context(&page).unwrap();
         }
 
-        local_rc.push_block_context(&page).unwrap();
+        // local_rc.push_block_context(&page).unwrap();
         match template {
             Some(t) => {
                 t.render(r, &mut local_rc).unwrap();

@@ -293,12 +293,16 @@ impl Site {
     fn create_render(&self) -> Result<Handlebars> {
         trace!("Creating render engine");
         let theme_path = self.get_theme_path()?;
-        let layout_path = Path::new(&theme_path).join("layout");
+        let layout_path = Path::new(&theme_path);
         let templates = get_all_file(&layout_path)
             .map_err(|err| Error::new("Failed to find template files.").with_inner_error(&err))?;
 
         let mut render = Handlebars::new();
         render.register_helper("json", Box::new(json_helper));
+        render.register_helper("count", Box::new(count_helper));
+        render.register_helper("markdown", Box::new(markdown_helper));
+        render.register_helper("dateformat", Box::new(date_format_helper));
+        render.register_helper("mdtoc", Box::new(markdown_toc_helper));
         render.register_helper("file", Box::new(file_helper));
         render.register_helper("pagination", Box::new(pagination_helper));
         for template in &templates {

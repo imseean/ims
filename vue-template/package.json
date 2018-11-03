@@ -11,6 +11,8 @@
     "build": "node build/build.js"
   },
   "dependencies": {
+    "gitalk": "^1.4.0",
+    "gitment": "0.0.3",
     "marked": "^0.3.15",
     "vue": "^2.5.2",
     "vue-awesome": "^2.3.4",

@@ -32,6 +32,7 @@
         </header>
         <div class="content" v-html="markdownContent"></div>
       </article>
+      <i-comment v-if="post.id!=null" :id="post.id"></i-comment>
       <i-footer></i-footer>
     </div>
   </div>
@@ -41,6 +42,7 @@ import marked from 'marked'
 import TOC from '@/components/shared/_toc'
 import Menu from '@/components/shared/_menu'
 import Footer from '@/components/shared/_footer'
+import Comment from '@/components/shared/_comment'
 import 'vue-awesome/icons/bars'
 import 'vue-awesome/icons/tag'
 import Icon from 'vue-awesome/components/Icon'
@@ -166,6 +168,7 @@ export default {
     'i-toc': TOC,
     'i-menu': Menu,
     'i-footer': Footer,
+    'i-comment': Comment,
     'icon': Icon
   },
   mounted() {
@@ -327,6 +330,11 @@ export default {
       display: inline-block;
       vertical-align: middle;
       margin: 0px 16px;
+      svg{
+        vertical-align: middle;
+        position:relative;
+        top: -3px;
+      }
     }
     .menu {
       display: inline-block;
@@ -336,8 +344,11 @@ export default {
       position: absolute;
       margin: 0px;
       top: auto;
-      right: 16px;
-      left: 64px;
+      right: 0px;
+      left: 53px;
+      ul{
+        vertical-align: middle;
+      }
     }
     .toc {
       position: fixed;
