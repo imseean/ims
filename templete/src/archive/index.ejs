@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>归档|{{@root/site/title}}</title>
+</head>
+
+<body>
+  <div class="archive-wraper">
+    <%= require("../share/header/index.ejs")() %>
+    <div class="content-wrapper">
+      <div>
+        <h1>归档</h1>
+        <ul class="posts">
+          {{#each @root/contents}}
+          <li class="post">
+            <div class="meta">
+              <time>{{dateformat create_time}}</time>
+            </div>
+            <span>
+              <a href="/post/{{id}}.html">{{title}}</a>
+            </span>
+          </li>
+          {{/each}}
+        </ul>
+      </div>
+    </div>
+    <%= require("../share/footer/index.ejs")() %>
+
+</body>
+
+</html>
