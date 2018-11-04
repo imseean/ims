@@ -13,7 +13,7 @@
     <div class="content-wrapper">
       <div class="tags">
         {{#each @root/tags}}
-        <a class="tag">{{name}}({{count list}})</a>
+        <a href="#anchor_{{hash name}}" class="tag">{{name}}({{count list}})</a>
         {{/each}}
       </div>
       {{#each @root/tags}}
