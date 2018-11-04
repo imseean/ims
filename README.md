@@ -38,7 +38,7 @@ $ npm run build
 ``` bash
 $ cd ims/template
 $ npm install
-$ npm run release
+$ npm run debug
 ```
 
 目标文件在 dist 目录。
