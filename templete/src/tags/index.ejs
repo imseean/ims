@@ -11,15 +11,14 @@
   <div class="tag-wraper">
     <%= require("../share/header/index.ejs")() %>
     <div class="content-wrapper">
-      <h1>标签</h1>
       <div class="tags">
         {{#each @root/tags}}
-        <a class="tag">{{name}}</a>
+        <a class="tag">{{name}}({{count list}})</a>
         {{/each}}
       </div>
       {{#each @root/tags}}
       <div>
-        <h2>{{name}}</h2>
+        <h2 id="anchor_{{hash name}}">{{name}}</h2>
         <ul class="posts">
           {{#each list}}
           <li class="post">

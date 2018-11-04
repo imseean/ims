@@ -19,7 +19,7 @@
           {{#mdtoc content as |toc|}}
           {{#each toc as |item|}}
           <li class="t{{item.level}}" >
-            <a href="#{{item.id}}">{{item.name}}</a>
+            <a href="#anchor_{{hash item/name}}">{{item/name}}</a>
           </li>
           {{/each}}
           {{/mdtoc}}
@@ -40,7 +40,7 @@
               <div class="tags">
                 <i class="iconfont icon-tag"></i>
                 {{#each tags}}
-                <a class="tag">{{this}}</a>
+                <a href="/tags.html/#anchor_{{hash this}}" class="tag">{{this}}</a>
                 {{/each}}
               </div>
             </div>
@@ -49,6 +49,7 @@
             {{markdown content}}
           </div>
         </article>
+        <%= require("../share/comment/index.ejs")() %>
       </div>
       <%= require("../share/footer/index.ejs")() %>
     </div>

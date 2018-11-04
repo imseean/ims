@@ -300,6 +300,7 @@ impl Site {
         let mut render = Handlebars::new();
         render.register_helper("json", Box::new(json_helper));
         render.register_helper("count", Box::new(count_helper));
+        render.register_helper("hash", Box::new(hash_helper));
         render.register_helper("markdown", Box::new(markdown_helper));
         render.register_helper("dateformat", Box::new(date_format_helper));
         render.register_helper("mdtoc", Box::new(markdown_toc_helper));
@@ -355,8 +356,11 @@ impl Site {
 
         let mut archives: Vec<ItemGroup<&Content>> = vec![];
         for content in &contents {
+            
             let date =  content.create_time.format("%b %Y").to_string();
+
             let index = archives.iter().position(|x| x.name == date);
+            
             if let Some(index) = index {
                 archives[index].list.push(content);
             } else {

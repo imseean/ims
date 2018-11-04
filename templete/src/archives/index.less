@@ -2,7 +2,9 @@
 @import url('../assets/_variables.less');
 @import url('../assets/_mixins.less');
 
-.tag-wraper {
+.archive-wraper {
+  padding: 32px;
+
   h1 {
     color: @color-g;
   }
@@ -14,6 +16,7 @@
       list-style-type: none;
       margin-left: 0;
       margin-bottom: 1rem;
+
       .meta {
         display: inline-block;
         font-size: 14px;
@@ -25,26 +28,33 @@
   }
 
   @media (min-width: @screen-size) {
-    width: 100%;
-    max-width: 900px;
-    margin: 0px auto;
-    padding: 32px 0px;
-    .content-wrapper {
+    & {
+      width: 100%;
       max-width: 900px;
-      margin: 0 auto;
-      padding: 32px;
-    }
-    .posts .post {
-      display: flex;
-      margin-bottom: 5px;
+      margin: 0px auto;
 
-      .meta {
-        text-align: left;
+      .content-wrapper {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 16px;
+      }
+
+      .posts .post {
+        display: flex;
+        margin-bottom: 5px;
+
+        .meta {
+          text-align: left;
+        }
       }
     }
+
   }
 
   @media (max-width: @screen-size) {
-    padding: 16px;
+    & {
+      padding: 16px;
+    }
+
   }
 }

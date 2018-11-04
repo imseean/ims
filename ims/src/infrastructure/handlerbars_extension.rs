@@ -12,13 +12,6 @@ use std::collections::BTreeMap;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 
-/// # Get Hashcode
-fn hash(value: String) -> u64 {
-    let mut state = DefaultHasher::new();
-    value.hash(&mut state);
-    state.finish()
-}
-
 /// # Render the json Format of the object.
 ///
 /// A helper for handlebars
@@ -30,7 +23,24 @@ pub fn json_helper(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result
     Ok(())
 }
 
-/// # Render the json Format of the object.
+/// # Get Hashcode for string.
+///
+/// A helper for handlebars
+pub fn hash_helper(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
+    if let Some(param) = h.param(0) {
+        let json = param.value();
+        if json.is_string() {
+            let data = json.as_str().unwrap();
+            let mut state = DefaultHasher::new();
+            data.hash(&mut state);
+            let result = state.finish();
+            rc.writer.write(&result.to_string().into_bytes()).is_ok();
+        }
+    }
+    Ok(())
+}
+
+/// # Format datatime.
 ///
 /// A helper for handlebars
 pub fn date_format_helper(
@@ -63,6 +73,13 @@ pub fn count_helper(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Resul
         }
     }
     Ok(())
+}
+
+fn hash(data: String) -> String {
+    let mut state = DefaultHasher::new();
+    data.hash(&mut state);
+    let result = state.finish();
+    return result.to_string();
 }
 
 /// # Convert markdown to html.
@@ -115,14 +132,12 @@ pub fn markdown_helper(
 pub struct TocItem {
     pub name: String,
     pub level: i32,
-    pub id: String,
 }
 impl TocItem {
-    pub fn new(name: &str, level: i32, id: &str) -> TocItem {
+    pub fn new(name: &str, level: i32) -> TocItem {
         return TocItem {
             name: name.to_string(),
             level: level,
-            id: id.to_string(),
         };
     }
 }
@@ -151,8 +166,7 @@ pub fn markdown_toc_helper(
                     Event::Text(text) => {
                         if header_level > -1 {
                             let name = text.clone().into_owned();
-                            let id = format!("anchor_{}", hash(name.clone()));
-                            let item = TocItem::new(&name, header_level, &id);
+                            let item = TocItem::new(&name, header_level);
                             toc.push(item);
                         }
                         Event::Text(text)

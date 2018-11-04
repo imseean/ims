@@ -1,6 +1,7 @@
    @import "./_mixins.less";
    @import "./_variables.less";
    @import "./iconfont.css";
+
    *,
    *:before,
    *:after {
@@ -17,11 +18,14 @@
    body {
        color: @color-f;
        background-color: @color-b;
+       font-display: swap;
        font-size: @font-size;
        font-family: @font-family;
        font-weight: 400;
-       line-height: @line-height;
        text-rendering: geometricPrecision;
+       -moz-osx-font-smoothing: grayscale;
+       -webkit-font-smoothing: antialiased;
+       line-height: @line-height;
        min-height: 100%;
        display: flex;
        flex-direction: column;
@@ -193,10 +197,12 @@
        border-left: 0px solid #ccc;
        margin: 1rem 10px;
        padding: 0.5em 10px;
-       quotes: '\201C' '\201D' '\2018' '\2019';
+       quotes: '\201C''\201D''\2018''\2019';
+
        p {
            margin: 0;
        }
+
        &:before {
            color: #ccffb6;
            content: '\201C';
@@ -205,18 +211,22 @@
            margin-right: 0.25em;
            vertical-align: -0.4em;
        }
+
        footer {
            color: #666;
            font-size: 11px;
            margin: line-height 0;
+
            a {
                color: #666;
-               background-image: linear-gradient( transparent, transparent 5px, #666 5px, #666);
+               background-image: linear-gradient(transparent, transparent 5px, #666 5px, #666);
+
                &:hover {
                    color: #999;
-                   background-image: linear-gradient( transparent, transparent 4px, #999 4px, #999);
+                   background-image: linear-gradient(transparent, transparent 4px, #999 4px, #999);
                }
            }
+
            cite {
                &:before {
                    content: '—';
@@ -228,6 +238,7 @@
 
    .with-hashtag {
        position: relative;
+
        &:before {
            content: '# ';
            color: @color-g;

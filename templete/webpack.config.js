@@ -31,7 +31,7 @@ var config = {
     module: {
         rules: [{
                 test: /\.css$/,
-                use: [MiniCssExtractPlugin.loader, 'css']
+                use: [MiniCssExtractPlugin.loader, 'css-loader']
             },
             {
                 test: /\.less$/,
@@ -72,8 +72,8 @@ var config = {
 
 
 registerPage(config, 'index')
-registerPage(config, 'tag')
-registerPage(config, 'archive')
+registerPage(config, 'tags')
+registerPage(config, 'archives')
 registerPage(config, 'post')
 
 config.plugins.push(new CopyWebpackPlugin([{

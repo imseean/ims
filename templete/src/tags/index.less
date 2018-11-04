@@ -2,14 +2,24 @@
 @import url('../assets/_variables.less');
 @import url('../assets/_mixins.less');
 
-.archive-wraper {
+.tag-wraper {
+  padding: 32px;
+
   h1 {
     color: @color-g;
   }
-
+  .tags{
+    margin: 10px 0px;
+    .tag{
+      display: inline-block;
+      margin:5px 10px 5px 5px;
+      &:first-child{
+        margin:5px 10px 5px 0px;
+      }
+    }
+  }
   .posts {
     padding: 0;
-
     .post {
       list-style-type: none;
       margin-left: 0;
@@ -24,27 +34,35 @@
       }
     }
   }
-  @media (min-width: @screen-size) {
-    width: 100%;
-    max-width: 900px;
-    margin: 0px auto;
-    padding: 32px 0px;
-    .content-wrapper {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 32px;
-    }
-    .posts .post {
-      display: flex;
-      margin-bottom: 5px;
 
-      .meta {
-        text-align: left;
+  @media (min-width: @screen-size) {
+    & {
+      width: 100%;
+      max-width: 900px;
+      margin: 0px auto;
+
+      .content-wrapper {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 16px;
+      }
+
+      .posts .post {
+        display: flex;
+        margin-bottom: 5px;
+
+        .meta {
+          text-align: left;
+        }
       }
     }
+
   }
 
   @media (max-width: @screen-size) {
-    padding: 16px;
+    & {
+      padding: 16px;
+    }
+
   }
 }

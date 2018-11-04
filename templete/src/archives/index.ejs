@@ -12,9 +12,10 @@
     <%= require("../share/header/index.ejs")() %>
     <div class="content-wrapper">
       <div>
-        <h1>归档</h1>
+        {{#each @root/archives}}
+        <h2>{{name}}</h2>
         <ul class="posts">
-          {{#each @root/contents}}
+          {{#each list}}
           <li class="post">
             <div class="meta">
               <time>{{dateformat create_time}}</time>
@@ -25,6 +26,7 @@
           </li>
           {{/each}}
         </ul>
+        {{/each}}
       </div>
     </div>
     <%= require("../share/footer/index.ejs")() %>

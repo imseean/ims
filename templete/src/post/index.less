@@ -98,11 +98,10 @@
     }
   }
 
-
-
   .post {
     transition: margin-right 0.3s ease;
     margin: 0px;
+
     .header,
     .content,
     .footer {
@@ -196,106 +195,111 @@
   }
 
   @media (min-width: @screen-size) {
+    & {
+      padding: @large-margin;
+      transition: padding 0.3s ease;
 
-    padding: @large-margin;
-    transition: padding 0.3s ease;
-
-    .side {
-      position: fixed;
-      width: 400px;
-      margin: 0px;
-      top: 0px;
-      bottom: 0px;
-      left: -400px;
-      transition: left 0.3s ease;
-
-    }
-
-    .center {
-      max-width: 900px;
-      margin: 0px auto;
-    }
-
-    .content-wrapper {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 32px;
-    }
-
-    &.with-side {
       .side {
-        left: 0px;
+        position: fixed;
+        width: 400px;
+        margin: 0px;
+        top: 0px;
+        bottom: 0px;
+        left: -400px;
+        transition: left 0.3s ease;
 
-        .toggle {
-          left: 400px;
-        }
       }
 
-      padding-left: 400px+@large-margin;
+      .center {
+        max-width: 900px;
+        margin: 0px auto;
+      }
+
+      .content-wrapper {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 16px;
+      }
+
+      &.with-side {
+        .side {
+          left: 0px;
+
+          .toggle {
+            left: 400px;
+          }
+        }
+
+        padding-left: 400px+@large-margin;
+      }
+
     }
 
   }
 
   @media (max-width: @screen-size) {
-    padding: @small-margin;
-    width: 100%;
+    & {
+      padding: @small-margin;
+      width: 100%;
 
-    .side {
-      position: fixed;
-      top: 0px;
-      left: -60%;
-      bottom: 0px;
-      width: 60%;
-      transition: left 0.3s ease;
-
-      .toc {
-        ol {
-          text-align: left;
-          padding-left: .9em;
-        }
-      }
-    }
-
-    .post {
-      position: relative;
-      transition: left 0.3s ease;
-      left: 0px;
-
-      .tags {
-        display: block;
-
-        &::before {
-          content: '';
-        }
-      }
-
-      .header,
-      .content,
-      .footer {
-        width: 100%;
-      }
-    }
-
-    .center {
-      position: relative;
-      left: 0px;
-      transition: left 0.3s ease;
-    }
-
-    &.with-side {
       .side {
-        left: 0px;
+        position: fixed;
+        top: 0px;
+        left: -60%;
+        bottom: 0px;
+        width: 60%;
+        transition: left 0.3s ease;
+
+        .toc {
+          ol {
+            text-align: left;
+            padding-left: .9em;
+          }
+        }
       }
 
-      .toggle {
-        left: 60%;
+      .post {
+        position: relative;
+        transition: left 0.3s ease;
+        left: 0px;
+
+        .tags {
+          display: block;
+
+          &::before {
+            content: '';
+          }
+        }
+
+        .header,
+        .content,
+        .footer {
+          width: 100%;
+        }
       }
 
       .center {
-        left: 70%;
+        position: relative;
+        left: 0px;
+        transition: left 0.3s ease;
+      }
+
+      &.with-side {
+        .side {
+          left: 0px;
+        }
+
+        .toggle {
+          left: 60%;
+        }
+
+        .center {
+          left: 70%;
+        }
+
       }
 
     }
-
   }
+
 }
