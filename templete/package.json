@@ -4,8 +4,9 @@
   "description": "ims theme",
   "main": "index.js",
   "scripts": {
-    "build": "node build.js",
-    "debug": "webpack-dev-server --hot --inline --progress --config webpack.config.js"
+    "release": "node build.production.js",
+    "debug": "node build.development.js",
+    "server": "webpack-dev-server --hot --inline --progress --config webpack.config.js"
   },
   "author": "biayan",
   "license": "ISC",
