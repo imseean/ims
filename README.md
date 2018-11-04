@@ -2,9 +2,9 @@
 
 [Demo](http://obaiyan.com)
 
-一个静态博客的轮子（自娱自乐，仅供参考，谨慎使用）。
+一个静态博客的轮子（自娱自乐，仅供参考，谨慎使用）。
 
-类似于 hexo/hugo。目前功能十分有限。
+类似于 hexo/hugo。目前功能十分有限。
 
 # 编译
 
@@ -25,7 +25,7 @@ $ cargo build --release
 
 ### vue-template
 
-基于 Vuejs 的一个单页应用。对SEO十分不友好，所以不打算更新了。
+基于 Vuejs 的一个单页应用。对SEO十分不友好，所以不打算更新了。
 ``` bash
 $ cd ims/vue-template
 $ npm install
@@ -51,13 +51,13 @@ $ npm run release
 $ ims --help
 ```
 
-Tips：运行`ims build` 之前需要将编译好的模版文件放在 `$(网站目录)/theme/default/` 下,程序会根据模版文件生成静态页面。
+Tips：运行`ims build` 之前需要将编译好的模版文件放在 `$(网站目录)/theme/default/` 下,程序会根据模版文件生成静态页面。
 
-由于模版使用的handlebars语法，功能十分有限。如果需要扩展模版功能需要修改主程序，添加 handlebars helper。
+由于模版使用的handlebars语法，功能十分有限。如果需要扩展模版功能需要修改主程序，添加 handlebars helper。
 
 目前有的helper：
 
-| helper    | 简介                             |
+| helper    | 简介                             |
 | ---------- | -------------------------------- |
 | json       | 输出Json对象                     |
 | count      | 输出列表个数                     |
@@ -67,11 +67,11 @@ Tips：运行`ims build` 之前需要将编译好的模版文件放在 `$(网站
 | mdtoc      | 提取markdown标题（用于生成目录） |
 | file       | 将模版输出到文件                 |
 | pagination | 分页                             |
-
+
 # 后续目标
 
 
-+ [ ] 监视文件自动生成页面
++ [ ] 监视文件改动自动生成页面
 + [ ] 集成 Git Hooks
 + [ ] 优化模版
 
