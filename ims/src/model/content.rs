@@ -203,7 +203,9 @@ impl Content {
                     continue;
                 }
             };
-            contents.push(content);
+            if content.target == "POST" {
+                contents.push(content);
+            }
         }
         trace!("Loaded {} content(s)", contents.len());
         return Ok(contents);

@@ -36,7 +36,7 @@ static LOGGER: Logger = Logger {
 fn main() {
     log::set_logger(&LOGGER).unwrap();
     log::set_max_level(LevelFilter::Debug);
-
+    
     let app = App::new("Ims")
         .version("1.0")
         .author("S W. <imseean@gmail.com>")
