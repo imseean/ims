@@ -104,6 +104,7 @@ pub fn markdown_helper(
                 Event::Text(text) => {
                     if header_level > -1 {
                         let name = text.clone().into_owned();
+                        
                         let data = Cow::from(format!(
                             "<a id=\"anchor_{}\"></a>{}",
                             hash(name.clone()),

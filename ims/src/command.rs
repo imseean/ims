@@ -4,6 +4,10 @@ use super::model::*;
 use super::infrastructure::*;
 type Result<T> = std::result::Result<T, Error>;
 
+
+
+
+
 pub mod site_command {
     use super::*;
     pub fn init() -> Result<()> {

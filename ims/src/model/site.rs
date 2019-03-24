@@ -168,6 +168,7 @@ impl Site {
     pub fn load(root_path: &str) -> Result<Site> {
         trace!("Loading site {0}", root_path);
         let path = Path::new(root_path);
+    
         if !path.exists() {
             return Err(Error::new("The dircetory is not exists."));
         }
